@@ -1,0 +1,397 @@
+// Initialize state
+let currentLanguage = null;
+let currentWordIndex = 0;
+let darkMode = false;
+
+// Screens DOM Elements
+const screens = {
+    language: document.getElementById('languageScreen'),
+    learning: document.getElementById('learningScreen'),
+    profile: document.getElementById('profileScreen')
+};
+
+// Navigation Elements
+document.getElementById('backBtn').addEventListener('click', handleBack);
+document.getElementById('homeBtn').addEventListener('click', () => showScreen('language'));
+document.getElementById('profileBtn').addEventListener('click', () => showScreen('profile'));
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+// Existing code in common.js
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if the token exists in localStorage when the page loads
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        // Redirect to login if no token is found
+        window.location.href = "/";
+    }
+
+    // Other logic for the page after the token check (if needed)
+    if (document.getElementById('profileScreen')) {
+        fetchUserProfile();
+    }
+});
+// Function to toggle visibility between loader and profile content
+function toggleProfileVisibility(showContent = false) {
+    const profileContent = document.getElementById('profileContent');
+    const loadingSpinner = document.getElementById('profileLoadingSpinner');
+
+    if (showContent) {
+        loadingSpinner.classList.add('hidden');
+        profileContent.classList.remove('hidden');
+    } else {
+        loadingSpinner.classList.remove('hidden');
+        profileContent.classList.add('hidden');
+    }
+}
+
+//
+document.getElementById("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+        const response = await fetch("http://127.0.0.1:5050/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+
+        // Log the response status and message
+        console.log("Response Status:", response.status);  // Check if status is 200
+        console.log("Response Message:", data.message);  // Log message to confirm it
+        console.log("Data Received:", data);  // Log the full response data
+
+        if (response.status === 200) {
+            // If status is 200, redirect to the next page
+            console.log("Redirecting to /index"); // Check if this log is printed
+            window.location.href = "/index"; // This should redirect if successful
+        } else {
+            alert(data.message || "Login failed.");
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+    }
+});
+
+// Fetch user profile data from the backend
+async function fetchUserProfile() {
+    try {
+        const response = await fetch('http://127.0.0.1:5050/api/profile', {
+            method: 'GET',
+            credentials: 'same-origin', // Ensure the session cookie is sent with the request
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            console.error("Error response:", error);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched data:", data);
+
+        // Update profile elements
+        document.getElementById('username').textContent = data.username || "User";
+        document.getElementById('userEmail').textContent = data.email || "No email provided";
+        document.getElementById('preferredLanguage').value = data.preferredLanguage || "English";
+        document.getElementById('currentStreak').textContent = `${data.currentStreak || 0} days`;
+        document.getElementById('highestStreak').textContent = `${data.highestStreak || 0} days`;
+
+    } catch (error) {
+        console.error("Error fetching user profile:", error);
+        alert("An error occurred while fetching the profile. Please try again later.");
+    }
+}
+
+// Update Profile (call when profile screen is loaded)
+function updateProfile() {
+    fetchUserProfile();
+}
+
+// Call fetchUserProfile when the profile screen is displayed
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('profileScreen')) {
+        fetchUserProfile();
+    }
+});
+//logout
+document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+function handleLogout() {
+    // Add logout logic, such as clearing the session or token
+    alert("You have logged out!");
+    window.location.href = "/"; // Redirect to login page after logout
+}
+// Reminder Modal
+const reminderModal = document.getElementById('reminderModal');
+document.getElementById('reminderBtn').addEventListener('click', () => {
+    reminderModal.classList.remove('hidden');
+});
+document.getElementById('cancelReminder').addEventListener('click', () => {
+    reminderModal.classList.add('hidden');
+});
+document.getElementById('saveReminder').addEventListener('click', () => {
+    const time = document.getElementById('reminderTime').value;
+    if (time) {
+        localStorage.setItem('reminderTime', time);
+        alert('Reminder set successfully!');
+        reminderModal.classList.add('hidden');
+    }
+});
+
+// Screen Management
+function showScreen(screenId) {
+    Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+    screens[screenId].classList.remove('hidden');
+    screens[screenId].classList.add('slide-in');
+    
+    if (screenId === 'language') {
+        updateProgress();
+    } else if (screenId === 'learning') {
+        updateWord();
+    } else if (screenId === 'profile') {
+        updateProfile();
+    }
+}
+
+// Navigation Functions
+function handleBack() {
+    if (!screens.language.classList.contains('hidden')) {
+        showScreen('language');
+    } else if (!screens.learning.classList.contains('hidden')) {
+        showScreen('language');
+    } else if (!screens.profile.classList.contains('hidden')) {
+        showScreen('language');
+    }
+}
+//toggle
+function toggleTheme() {
+    darkMode = !darkMode;
+
+    // Toggle body background color
+    document.body.classList.toggle('bg-gray-900');
+    document.body.classList.toggle('text-white'); // Ensure the body text color toggles too
+
+    // Toggle text and background colors for specific elements
+    document.querySelectorAll('.bg-white, .text-black, .text-gray-800').forEach(el => {
+        el.classList.toggle('bg-gray-800'); // Dark mode background
+        el.classList.toggle('bg-white'); // Light mode background
+        el.classList.toggle('text-white'); // Dark mode text
+        el.classList.toggle('text-black'); // Light mode text
+    });
+
+    // Update the theme toggle icon
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.innerHTML = darkMode 
+        ? '<i class="bi bi-moon text-xl"></i>' 
+        : '<i class="bi bi-sun text-xl"></i>';
+}
+
+// Learning Functions
+let words = {
+    english: [
+        { word: "Serendipity", meaning: "Finding something good without looking for it", example: "By serendipity, I found my favorite book in a small bookstore." },
+        { word: "Ephemeral", meaning: "Lasting for a very short time", example: "The beauty of cherry blossoms is ephemeral." },
+    ],
+    kannada: [
+        { word: "ನಮಸ್ಕಾರ", meaning: "Boy", example: "ಹುಡುಗ ಶಾಲೆಗೆ ಹೋದನು." },
+        { word: "ಹೂವು", meaning: "Flower", example: "ತೋಟದಲ್ಲಿ ಹೂವು ಅರಳಿತು." },
+    ],
+    hindi: [
+        { word: "आकाश", meaning: "Sky", example: "आकाश में तारे चमक रहे हैं।" },
+        { word: "पुस्तक", meaning: "Book", example: "मैं पुस्तक पढ़ रहा हूं।" },
+    ],
+    telugu: [
+        { word: "పుస్తకం", meaning: "Book", example: "నేను పుస్తకం చదువుతున్నాను." },
+        { word: "ఆకాశం", meaning: "Sky", example: "ఆకాశంలో చుక్కలు మెరుస్తున్నాయి." },
+    ]
+};
+
+function updateWord() {
+    const word = words[currentLanguage][currentWordIndex];
+    document.getElementById('currentWord').textContent = word.word;
+    document.getElementById('meaning').textContent = word.meaning;
+    document.getElementById('example').textContent = word.example;
+    document.getElementById('wordCount').textContent = `Word ${currentWordIndex + 1}/${words[currentLanguage].length}`;
+}
+
+function updateProgress() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const progress = Math.floor(Math.random() * 100);
+        bar.style.width = `${progress}%`;
+        bar.textContent = `${progress}%`;
+    });
+}
+
+// Initialize app
+document.addEventListener('DOMContentLoaded', () => {
+    // Event listeners for language selection
+    document.querySelectorAll('.language-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentLanguage = btn.dataset.lang;
+            showScreen('learning');
+        });
+    });
+
+    // Word navigation
+    document.getElementById('nextWord').addEventListener('click', () => {
+        currentWordIndex = (currentWordIndex + 1) % words[currentLanguage].length;
+        updateWord();
+    });
+
+    document.getElementById('prevWord').addEventListener('click', () => {
+        currentWordIndex = (currentWordIndex - 1 + words[currentLanguage].length) % words[currentLanguage].length;
+        updateWord();
+    });
+
+    // Word Pronunciation
+    document.getElementById('pronounceBtn').addEventListener('click', () => {
+        const audioFiles = {
+            kannada: {
+                "ಹುಡುಗ": "audio/kannada/huduga.mp3",
+                "ಹೂವು": "audio/kannada/hoovu.mp3",
+                "ನಮಸ್ಕಾರ": '/audio/Kannada/Kan-Namskara.mp3'
+            },
+            telugu: {
+                "పుస్తకం": "audio/telugu/pustakam.mp3",
+                "ఆకాశం": "audio/telugu/akasham.mp3",
+                "నమస్కారం": "audio/telugu/namaskaram.mp3"
+            },
+            tamil: {
+                "வணக்கம்": "audio/tamil/vanakkam.mp3",
+                "பூ": "audio/tamil/poo.mp3",
+                "நூல்": "audio/tamil/nool.mp3"
+            }
+        };
+
+        const word = words[currentLanguage][currentWordIndex]?.word;
+
+        if (!word) {
+            alert('Word not found!');
+            return;
+        }
+
+        if (currentLanguage === 'english' || currentLanguage === 'hindi') {
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = { english: 'en-US', hindi: 'hi-IN' }[currentLanguage];
+            window.speechSynthesis.speak(utterance);
+        } else {
+            const filePath = audioFiles[currentLanguage]?.[word];
+
+            if (filePath) {
+                const audio = new Audio(filePath);
+                audio.play();
+            } else {
+                alert(`Audio file not found for the word: "${word}" in ${currentLanguage}!`);
+            }
+        }
+    });
+
+    // Reminder functionality
+    const reminderTime = localStorage.getItem('reminderTime');
+    if (reminderTime) {
+        document.getElementById('reminderTime').value = reminderTime;
+    }
+});
+
+// reminder
+document.addEventListener("DOMContentLoaded", () => {
+    // Bind Cancel button functionality
+    document.getElementById("cancelReminder").addEventListener("click", closeModal);
+
+    // Bind Save button functionality
+    document.getElementById("saveReminder").addEventListener("click", scheduleReminder);
+
+    // Request notification permission
+    if ("Notification" in window) {
+        Notification.requestPermission().then(function (permission) {
+            if (permission !== "granted") {
+                alert("Please allow notification access!");
+            }
+        });
+    } else {
+        alert("This browser does not support notifications.");
+    }
+});
+
+let timeoutIds = []; // Store timeout IDs for reminders
+
+function closeModal() {
+    document.getElementById("reminderModal").classList.add("hidden"); // Hide modal
+}
+
+function openModal() {
+    document.getElementById("reminderModal").classList.remove("hidden"); // Show modal
+}
+
+function scheduleReminder() {
+    const time = document.getElementById("time").value;
+
+    if (!time) {
+        alert("Please select a time!");
+        return;
+    }
+
+    const currentDate = new Date();
+    const [hours, minutes] = time.split(":").map(Number);
+    const scheduledTime = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), hours, minutes);
+
+    const timeDifference = scheduledTime - currentDate;
+
+    if (timeDifference > 0) {
+        addReminderToTable(time);
+
+        const timeoutId = setTimeout(() => {
+            // Play notification sound
+            const notificationSound = document.getElementById("notificationSound");
+            if (notificationSound) {
+                notificationSound.play();
+            }
+
+            // Show browser notification
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("Reminder", {
+                    body: `It's time for your scheduled reminder set at ${time}!`,
+                    requireInteraction: true, // Keeps the notification visible until dismissed
+                });
+            } else {
+                console.error("Notification not supported or permission denied.");
+                alert(`It's time for your reminder set at ${time}!`); // Fallback alert
+            }
+        }, timeDifference);
+
+        timeoutIds.push(timeoutId); // Save timeout ID for future reference
+        closeModal(); // Close modal after setting the reminder
+    } else {
+        alert("The scheduled time is in the past. Please select a future time.");
+    }
+}
+
+function addReminderToTable(time) {
+    const tableBody = document.getElementById("reminderTableBody");
+    const row = tableBody.insertRow();
+
+    const timeCell = row.insertCell(0);
+    const actionCell = row.insertCell(1);
+
+    timeCell.textContent = time; // Add the time to the table cell
+    actionCell.innerHTML = '<button class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" onclick="deleteReminder(this);">Delete</button>';
+}
+
+function deleteReminder(button) {
+    const row = button.closest("tr");
+    const index = row.rowIndex - 1; // Adjust for table header row
+
+    clearTimeout(timeoutIds[index]); // Clear the corresponding timeout
+    timeoutIds.splice(index, 1); // Remove the timeout ID from the array
+
+    row.remove(); // Remove the row from the table
+}

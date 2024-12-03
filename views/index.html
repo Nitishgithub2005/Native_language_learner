@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Native Language Learner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="public/style.css">
+    <style>
+        h1 {
+            font-size: clamp(1rem, 5vw, 3.5rem);
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #50C878;
+            --background-color: #F4F7FA;
+            --text-color: #2C3E50;
+        }
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+        }
+        .nav-gradient {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .card-shadow:hover {
+            transform: scale(1.02);
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            transition: transform 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+        }
+        .language-btn {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .language-btn:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 20px rgba(74, 144, 226, 0.2);
+        }
+        #mainContent {
+            background: linear-gradient(to bottom right, #FFFFFF, #F4F7FA);
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        input[type="submit"] {
+            margin-top: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        #reminderTableContainer {
+            display: none;
+            margin-top: 80px; /* Adjust based on navbar height */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            overflow: auto;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+        }
+        #toggleRemindersBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 70;
+            background: linear-gradient(135deg, #4A90E2, #50C878);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        #closeRemindersBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #toggleRemindersBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen">
+        <!-- Navigation -->
+       <!-- Update the navigation section in the previous HTML -->
+       <nav class="nav-gradient shadow-lg fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-full mx-auto px-2 sm:px-4">
+            <div class="flex justify-between h-12 sm:h-16 items-center text-white">
+                <div class="flex items-center overflow-hidden">
+                    <button id="backBtn" class="mr-2 sm:mr-4 hover:bg-white/20 rounded-full p-1 sm:p-2">
+                        <i class="bi bi-arrow-left text-base sm:text-xl"></i>
+                    </button>
+                    <button id="homeBtn" class="mr-2 sm:mr-4 hover:bg-white/20 rounded-full p-1 sm:p-2">
+                        <i class="bi bi-house text-base sm:text-xl"></i>
+                    </button>
+                    <button id="translateBtn" class="mr-2 sm:mr-4 hover:bg-white/20 rounded-full p-1 sm:p-2">
+                        <i class="bi bi-translate text-base sm:text-xl"></i>
+                    </button>
+                    <h1 class="text-sm sm:text-base truncate max-w-[150px] sm:max-w-full">
+                        Native Language Learner
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <button id="reminderBtn" class="hover:bg-white/20 rounded-full p-1 sm:p-2">
+                        <i class="bi bi-bell text-base sm:text-xl"></i>
+                    </button>
+                    <button id="themeToggle" class="hover:bg-white/20 rounded-full p-1 sm:p-2">
+                        <i class="bi bi-sun text-base sm:text-xl"></i>
+                    </button>
+                    <button id="profileBtn" class="ml-1 sm:ml-2">
+                       <img class="h-8 w-8 sm:h-10 sm:w-10 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=User" alt="Profile"> 
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+<button id="toggleRemindersBtn" class="fixed bottom-4 right-4 z-50">
+    <i class="bi bi-bell"></i> Reminders
+</button>
+
+
+
+        <!-- Modal -->
+        <div id="reminderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[100] flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 w-96 mx-4">
+                <h3 class="text-lg font-semibold mb-4">Set Daily Reminder</h3>
+                <input type="time" id="time" class="w-full p-2 border rounded mb-4">
+                <div class="flex justify-end">
+                    <button id="cancelReminder" class="mr-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
+                    <button id="saveReminder" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                </div>
+            </div>
+        </div>
+        <!-- Notification Sound -->
+        <audio src="audio/notify.wav" id="notificationSound"></audio>
+
+        <!-- Table for displaying reminders -->
+        <div id="reminderTableContainer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <button id="closeRemindersBtn">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <table class="table-auto border-collapse border border-gray-400 w-full bg-white shadow-md rounded-lg overflow-hidden">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-400 px-4 py-2">Time</th>
+                        <th class="border border-gray-400 px-4 py-2">Action</th>
+                        <th class="border border-gray-400 px-4 py-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="reminderTableBody"></tbody>
+            </table>
+        </div>
+    
+
+        <!-- Main Content -->
+        <div id="mainContent" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+            <div class="container glass-morphism p-8 rounded-xl">
+                <h1 class="text-3xl font-bold mb-6 text-center text-primary-color">Language Translator</h1>
+                <form id="translate-form" class="space-y-4">
+                    <div>
+                        <b class="block mb-2">SOURCE LANGUAGE</b>
+                        <select name="source_lang" id="source_lang" class="w-full p-3 rounded-lg border-2 border-gray-200">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                            <option value="kn">Kannada</option>
+                            <option value="te">Telugu</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <b class="block mb-2">TARGET LANGUAGE</b>
+                        <select name="target_lang" id="target_lang" class="w-full p-3 rounded-lg border-2 border-gray-200">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                            <option value="kn">Kannada</option>
+                            <option value="te">Telugu</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <b class="block mb-2">TEXT</b>
+                        <textarea name="text" id="text" class="w-full p-3 rounded-lg border-2 border-gray-200 h-32"></textarea>
+                    </div>
+
+                    <input type="submit" value="TRANSLATE" class="w-full btn-gradient text-white p-3 rounded-lg font-bold tracking-wider hover:opacity-90">
+                </form>
+
+                <div id="result" class="mt-6 p-4 bg-white rounded-lg shadow-md"></div>
+            </div>
+
+            <!-- Language Selection Screen -->
+            <div id="languageScreen" class="hidden mt-8">
+                <h2 class="text-3xl font-bold text-center mb-8">Choose Your Language</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <button class="language-btn p-6 bg-white rounded-lg shadow-md hover:shadow-lg" data-lang="english">
+                        <h3 class="text-xl font-semibold mb-2">English</h3>
+                        <p class="text-gray-600 mb-4">30 words</p>
+                    </button>
+                    <button class="language-btn p-6 bg-white rounded-lg shadow-md hover:shadow-lg" data-lang="kannada">
+                        <h3 class="text-xl font-semibold mb-2">ಕನ್ನಡ</h3>
+                        <p class="text-gray-600 mb-4">30 words</p>
+                    </button>
+                    <button class="language-btn p-6 bg-white rounded-lg shadow-md hover:shadow-lg" data-lang="hindi">
+                        <h3 class="text-xl font-semibold mb-2">हिंदी</h3>
+                        <p class="text-gray-600 mb-4">30 words</p>
+                    </button>
+                    <button class="language-btn p-6 bg-white rounded-lg shadow-md hover:shadow-lg" data-lang="telugu">
+                        <h3 class="text-xl font-semibold mb-2">తెలుగు</h3>
+                        <p class="text-gray-600 mb-4">30 words</p>
+                    </button>
+                </div>
+            </div>
+
+          <!-- Learning Screen -->
+<div id="learningScreen" class="hidden max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- Streak and Word Count -->
+        <div class="flex justify-between items-center mb-6">
+            <span id="currentStreak" class="text-sm font-medium text-blue-600">Current Streak: 5 days</span>
+            <span id="wordCount" class="text-sm text-gray-600">Word 1/30</span>
+        </div>
+        <button id="goBackBtn" class="px-4 py-2 mb-4 bg-red-600 text-white rounded-md hover:bg-red-700">Go Back</button>
+        <!-- Language Selection -->
+        <div class="mb-4">
+            <label for="meaningLanguage" class="mr-2">Show Meaning in:</label>
+<select id="meaningLanguage" class="border rounded p-2">
+    <option value="English">English</option>
+    <option value="Kannada">Kannada</option>
+    <option value="Hindi">Hindi</option>
+    <option value="Telugu">Telugu</option>
+</select>
+        </div>
+
+        <!-- Current Word and Pronunciation -->
+        <h2 id="currentWord" class="text-3xl font-bold text-center mb-4"></h2>
+        <button id="pronounceBtn" class="mx-auto block mb-4 p-2 rounded-full bg-blue-100 hover:bg-blue-200">
+            <i class="bi bi-volume-up text-2xl text-blue-600"></i>
+        </button>
+
+        <!-- Word Details -->
+        <div id="wordDetails" class="space-y-4">
+            <p id="meaning" class="text-gray-700"></p>
+            <p id="example" class="text-gray-600 italic"></p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-6 flex justify-between">
+            <button id="prevWord" class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">Previous</button>
+            <button id="markLearned" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Mark as Learned</button>
+            <button id="nextWord" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Next Word</button>
+        </div>
+    </div>
+</div>
+
+
+            <!-- Profile Screen -->
+            <div id="profileScreen" class="hidden max-w-2xl mx-auto">
+                <div id="profileLoadingSpinner" class="flex justify-center items-center h-32">
+                    <div class="loader"></div>
+                    <p>Loading profile...</p>
+                </div>
+                <div id="profileContent" class="hidden bg-white rounded-lg shadow-md p-6">
+                    <div class="text-center mb-6">
+                        <h2 id="username" class="text-2xl font-bold"></h2>
+                        <p id="userEmail" class="text-gray-600"></p>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-2">Preferred Language</h3>
+                            <select id="preferredLanguage" class="w-full p-2 border rounded">
+                                <option value="english">English</option>
+                                <option value="kannada">Kannada</option>
+                                <option value="hindi">Hindi</option>
+                                <option value="telugu">Telugu</option>
+                            </select>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-2">Language you know</h3>
+                            <select id="languagesKnown" class="w-full p-2 border rounded">
+                                <option value="english">English</option>
+                                <option value="kannada">Kannada</option>
+                                <option value="hindi">Hindi</option>
+                                <option value="telugu">Telugu</option>
+                            </select>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-2">Learning Streaks</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-4 bg-blue-50 rounded-lg">
+                                    <p class="text-sm text-gray-600">Current Streak</p>
+                                    <p id="currentStreak" class="text-2xl font-bold text-blue-600"></p>
+                                </div>
+                                <div class="p-4 bg-green-50 rounded-lg">
+                                    <p class="text-sm text-gray-600">Highest Streak</p>
+                                    <p id="highestStreak" class="text-2xl font-bold text-green-600"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="logoutBtn" class="mt-8 w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+        <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const languageScreen = document.getElementById("languageScreen");
+    const learningScreen = document.getElementById("learningScreen");
+    const goBackBtn = document.getElementById("goBackBtn");
+
+    // Show Language Selection Screen and hide Learning Screen
+    goBackBtn.addEventListener("click", () => {
+        learningScreen.classList.add("hidden"); // Hide Learning Screen
+        languageScreen.classList.remove("hidden"); // Show Language Screen
+    });
+});
+
+             // Add this to your existing script or in script.js
+             document.addEventListener('DOMContentLoaded', () => {
+                const toggleRemindersBtn = document.getElementById('toggleRemindersBtn');
+                const reminderTableContainer = document.getElementById('reminderTableContainer');
+                const closeRemindersBtn = document.getElementById('closeRemindersBtn');
+                
+                toggleRemindersBtn.addEventListener('click', () => {
+                    reminderTableContainer.style.display = 'block';
+                });
+    
+                closeRemindersBtn.addEventListener('click', () => {
+                    reminderTableContainer.style.display = 'none';
+                });
+  // Modify the profile screen to ensure it's properly displayed
+  const profileScreen = document.getElementById('profileScreen');
+  const profileBtn = document.getElementById('profileBtn');
+
+  profileBtn.addEventListener('click', () => {
+      // Hide other screens
+      document.querySelector('.container').classList.add('hidden');
+      document.getElementById('languageScreen').classList.add('hidden');
+      document.getElementById('learningScreen').classList.add('hidden');
+
+      // Show profile screen
+      profileScreen.classList.remove('hidden');
+  });
+
+   // Add a back button functionality to return to the main screen
+   const backBtn = document.getElementById('backBtn');
+   backBtn.addEventListener('click', () => {
+       profileScreen.classList.add('hidden');
+       document.querySelector('.container').classList.remove('hidden');
+       document.getElementById('languageScreen').classList.remove('hidden');
+   });
+});
+            document.addEventListener('DOMContentLoaded', () => {
+                const homeBtn = document.getElementById('homeBtn');
+                const translateBtn = document.getElementById('translateBtn');
+                const translateSection = document.querySelector('.container');
+                const languageScreen = document.getElementById('languageScreen');
+            
+                homeBtn.addEventListener('click', () => {
+                    translateSection.classList.add('hidden');
+                    languageScreen.classList.remove('hidden');
+                });
+            
+                translateBtn.addEventListener('click', () => {
+                    translateSection.classList.remove('hidden');
+                    languageScreen.classList.add('hidden');
+                });
+            });
+            //////////
+            document.getElementById("translate-form").addEventListener("submit", function(e) {
+                e.preventDefault();  // Prevent the form from submitting the traditional way
+        
+                var sourceLang = document.getElementById("source_lang").value;
+                var targetLang = document.getElementById("target_lang").value;
+                var text = document.getElementById("text").value.trim();
+        
+                // Ensure the text is not empty
+                if (text === "") {
+                    document.getElementById("result").innerHTML = "Please enter some text to translate.";
+                    return;
+                }
+        
+                // Create the POST request to the Google Apps Script
+                var formData = new FormData();
+                formData.append("source_lang", sourceLang);
+                formData.append("target_lang", targetLang);
+                formData.append("text", text);
+        
+                // Make the fetch call
+                fetch("https://script.google.com/macros/s/AKfycbxNWw37mSENePHZjivHEb6Qd3hPZ2NZAcLzZFXrG2lL10ZuuvFcHbYVHEHUrcP48F8Q/exec", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())  // Parse the JSON response
+                .then(data => {
+                    if (data.status === "success") {
+                        document.getElementById("result").innerHTML = "<b>Translated Text:</b><br>" + data.translatedText;
+                    } else {
+                        document.getElementById("result").innerHTML = "<b>Error:</b><br>" + data.message;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("result").innerHTML = "<b>Error:</b><br>There was an issue with the translation request.";
+                    console.error("Error:", error);
+                });
+            });
+        </script>
+    <script src="/script.js"></script>
+</body>
+</html>
