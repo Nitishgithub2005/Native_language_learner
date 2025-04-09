@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const connect = mongoose.connect("mongodb+srv://Nitishgithub2005:Niknit@cluster0.ym9rn.mongodb.net/login?retryWrites=true&w=majority&appName=Cluster0");
+const connect = mongoose.connect("url");
 
 // Check database connection
 connect.then(() => {
