@@ -8,9 +8,9 @@ const mongoose = require('mongoose');
 const wordsRouter = require('./routes/words');
 require("dotenv").config()
 const app = express();
-console.log("MongoDB URI:", "mongodb+srv://Nitishgithub2005:Niknit@cluster0.ym9rn.mongodb.net/login?retryWrites=true&w=majority&appName=Cluster0");
+console.log("MongoDB URI:", "enter ur url here");
 // MongoDB Connection
-mongoose.connect("mongodb+srv://Nitishgithub2005:Niknit@cluster0.ym9rn.mongodb.net/login?retryWrites=true&w=majority&appName=Cluster0", {
+mongoose.connect("menter ur url here bro", {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
@@ -26,7 +26,7 @@ app.use('/api', wordsRouter);
 
 // Session middleware configuration
 app.use(session({
-    secret: '21ac59b119660bd89790f85e293573e31501cae5f70d7952d08dbde805c6bf6efb47df737bce321626d83fa5d292d259843922f4fbcfcc9d9eb92d7ef3a247e6',
+    secret: 'enter here secret key',
     resave: false,
     saveUninitialized: true,
     cookie: { 
