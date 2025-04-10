@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Word = require('../models/words'); // Ensure this points to your Word model
 
 // MongoDB Connection
-mongoose.connect('mongodb+srv://Nitishgithub2005:Niknit@cluster0.ym9rn.mongodb.net/login?retryWrites=true&w=majority&appName=Cluster0', {
+mongoose.connect('bro enter thr url here of mongo', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
